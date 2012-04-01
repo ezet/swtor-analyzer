@@ -21,6 +21,7 @@ public abstract class CombatMetricEntity {
 	protected long immuneCount;
 	protected long parryCount;
 	protected long dodgeCount;
+	protected long resistCount;
 
 	protected long absorbCount;
 	protected long absorbTotal;
@@ -87,6 +88,10 @@ public abstract class CombatMetricEntity {
 
 	public long getDodgeCount() {
 		return dodgeCount;
+	}
+	
+	public long getResistCount() {
+		return resistCount;
 	}
 
 	public long getAbsorbCount() {
@@ -159,6 +164,11 @@ public abstract class CombatMetricEntity {
 		++deflectCount;
 		++mitigateCount;
 	}
+	
+	public void addResist() {
+		++resistCount;
+		++mitigateCount;
+	}
 
 	public void addAbsorb(long value) {
 		++absorbCount;
@@ -200,6 +210,9 @@ public abstract class CombatMetricEntity {
 			break;
 		case DEFLECT:
 			addDeflect();
+			break;
+		case RESIST:
+			addResist();
 			break;
 		}
 	}

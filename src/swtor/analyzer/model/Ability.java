@@ -18,4 +18,8 @@ public class Ability extends CombatMetricEntity {
 		return id;
 	}
 	
+	public String toString() {
+		return name + ": "+ super.toString();
+	}
+	
 }

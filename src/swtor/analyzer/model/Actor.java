@@ -19,6 +19,7 @@ public class Actor extends CombatMetricEntity {
 	private long targetOfImmuneCount;
 	private long targetOfParryCount;
 	private long targetOfDodgeCount;
+	private long targetOfResistCount;
 
 	protected long targetOfAbsorbCount;
 	protected long targetOfAbsorbTotal;
@@ -30,6 +31,22 @@ public class Actor extends CombatMetricEntity {
 		super();
 		this.name = name;
 		this.id = id;
+	}
+
+	public long getTargetOfHitCount() {
+		return targetOfHitCount;
+	}
+
+	public void setTargetOfHitCount(long targetOfHitCount) {
+		this.targetOfHitCount = targetOfHitCount;
+	}
+
+	public long getTargetOfCritCount() {
+		return targetOfCritCount;
+	}
+
+	public void setTargetOfCritCount(long targetOfCritCount) {
+		this.targetOfCritCount = targetOfCritCount;
 	}
 
 	public long getTargetOfMitigateCount() {
@@ -184,6 +201,11 @@ public class Actor extends CombatMetricEntity {
 		++targetOfDeflectCount;
 		++targetOfMitigateCount;
 	}
+	
+	public void addTargetOfResist() {
+		++targetOfResistCount;
+		++targetOfMitigateCount;
+	}
 
 	public void addTargetOfAbsorb(long value) {
 		targetOfAbsorbTotal += value;
@@ -193,26 +215,29 @@ public class Actor extends CombatMetricEntity {
 	public void addTargetOfMitigate(MitigationType type) {
 		switch (type) {
 		case MISS:
-			addMiss();
+			addTargetOfMiss();
 			break;
 		case GLANCE:
-			addGlance();
+			addTargetOfGlance();
 			break;
 		case PARRY:
-			addParry();
+			addTargetOfParry();
 			break;
 		case DODGE:
-			addDodge();
+			addTargetOfDodge();
 			break;
 		case IMMUNE:
-			addImmune();
+			addTargetOfImmune();
 			break;
 		case DEFLECT:
-			addDeflect();
+			addTargetOfDeflect();
+			break;
+		case RESIST:
+			addTargetOfResist();
 			break;
 		}
 	}
-	
+
 	public String toString() {
 		return String.format("name:%s", name);
 	}

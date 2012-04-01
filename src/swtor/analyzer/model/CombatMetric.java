@@ -60,7 +60,7 @@ public class CombatMetric {
 
 	public void computeValuesOverTime(long duration) {
 		if (duration > 0)
-			perSecond = total / duration;
+			perSecond = ((double) total  * 1000D) / duration;
 	}
 
 	public String toString() {

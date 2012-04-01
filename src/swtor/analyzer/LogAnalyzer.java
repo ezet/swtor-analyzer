@@ -20,13 +20,17 @@ public class LogAnalyzer {
 		if (!results.isEmpty()) {
 			return results.get(results.size() - 1);
 		} else {
-			return new Result();
+			return new Result(0);
 		}
 	}
 
 	public void process() {
-		analyzer.process(log);
-		results = analyzer.getResults();
+		if (!log.isEmpty()) {
+			analyzer.process(log);
+			results = analyzer.getResults();
+		} else {
+			System.out.println("log empty");
+		}
 	}
 
 }

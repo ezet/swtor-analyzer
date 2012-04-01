@@ -3,6 +3,8 @@ package swtor.analyzer.test;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -17,24 +19,21 @@ public class LogAnalyzerTest {
 
 	@Test
 	public void test() {
-		Path path = Paths.get("D:/Dev/Projects/SwtorParser/SampleLogs/sample.txt");
-		LogParser p = new LogParser(path);
-		try {
-			p.parse();
+		Path path;
+		path = Paths.get("D:/Dev/Projects/SwtorParser/SampleLogs/");
+		try (DirectoryStream<Path> dir = Files.newDirectoryStream(path);) {
+			for (Path p : dir) {
+				Logger.log(p.toString());
+				LogParser parser = new LogParser(p);
+				parser.parse();
+				LogAnalyzer a = new LogAnalyzer(parser.getLog());
+				a.process();
+				Result res = a.getLastResult(); 
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fail("IO error");
 		}
-		
-		LogAnalyzer a = new LogAnalyzer(p.getLog());
-		a.process();
-		Result res = a.getLastResult();
-		Logger.log(res.toString());
-		
-		Logger.log(res.getActors().get("@Argorash").getDamageDone().toString());
-		Logger.log(res.getHealingDone().toString());
-		
-		assertTrue(true);
 	}
 
 }

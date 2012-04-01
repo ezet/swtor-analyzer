@@ -7,10 +7,10 @@ import swtor.analyzer.model.Ability;
 import swtor.analyzer.model.Actor;
 import swtor.analyzer.model.ModelFactory;
 import swtor.analyzer.model.Result;
+import swtor.analyzer.model.Result.ResultType;
 import swtor.parser.constant.EntryType;
 import swtor.parser.constant.MitigationType;
 import swtor.parser.model.LogEntry;
-import swtor.parser.utility.Logger;
 
 public class Analyzer {
 
@@ -23,43 +23,55 @@ public class Analyzer {
 
 	public void process(List<LogEntry> log) {
 		results = new ArrayList<>();
-		result = new Result();
+		result = new Result(0);
+		LogEntry previous = null;
 		for (LogEntry entry : log) {
-			Logger.debug(entry);
+			if (result.getStart() == null) {
+				result.setStart(entry.getTime());
+			}
+
 			if (entry.getType() == EntryType.ENTER_COMBAT) {
-				processResult();
+				if (result.getLogEntryCount() > 0) {
+					result.setEnd(previous.getTime());
+					result.setLineEnd(previous.getLineNumber());
+					finalizeResult();
+					result = new Result(entry.getLineNumber());
+				}
+				result.setType(ResultType.IN_COMBAT);
+			} else if (entry.getType() == EntryType.EXIT_COMBAT && result.getLogEntryCount() > 0) {
+				result.setType(ResultType.IN_COMBAT);
+				result.setEnd(entry.getTime());
+				result.setLineEnd(entry.getLineNumber());
+				finalizeResult();
 				results.add(result);
-				// result = new Result();
+				result = new Result(entry.getLineNumber());
+			} else {
+				processEntry(entry);
 			}
-
-			processEntry(entry);
-
-			if (entry.getType() == EntryType.EXIT_COMBAT) {
-				processResult();
-				results.add(result);
-				// result = new Result();
-
-			}
+			previous = entry;
 		}
-		processResult();
+		result.setEnd(previous.getTime());
+		result.setLineEnd(previous.getLineNumber());
+		finalizeResult();
 		results.add(result);
 	}
 
-	private void processResult() {
+	private void finalizeResult() {
+		result.setDuration(Math.abs(result.getStart().getTimeInMillis() - result.getEnd().getTimeInMillis()));
 		result.computeValuesOverTime(result.getDuration());
-		// TODO implement calculation of DPS values eg.
+		results.add(result);
 	}
-	
 
 	private void processEntry(LogEntry entry) {
+		result.increaseLogEntryCount();
 		Actor source = result.getActor(ModelFactory.getActor(entry.getSource()));
 		Actor target = result.getActor(ModelFactory.getActor(entry.getTarget()));
 		Ability sourceAbility = source.getSourceOfAbility(ModelFactory.getAbility(entry.getAbility()));
 		Ability targetAbility = source.getTargetOfAbility(ModelFactory.getAbility(entry.getAbility()));
+		Ability ability = result.getAbility(ModelFactory.getAbility(entry.getAbility()));
 
 		// set the owner of the result
 		if (result.getOwner() == null && source == target) {
-			Logger.debug("setting owner: " + source.getName());
 			result.setOwner(source.getName());
 		}
 
@@ -70,6 +82,10 @@ public class Analyzer {
 			result.addDamageReceived(value);
 			result.trySetMinMaxDamageDone(value);
 			result.trySetMinMaxDamageReceived(value);
+			ability.addDamageDone(value);
+			ability.addDamageReceived(value);
+			ability.trySetMinMaxDamageDone(value);
+			ability.trySetMinMaxDamageReceived(value);
 			source.addDamageDone(value);
 			source.trySetMinMaxDamageDone(value);
 			target.addDamageReceived(value);
@@ -84,6 +100,10 @@ public class Analyzer {
 			result.addHealingReceived(value);
 			result.trySetMinMaxHealingDone(value);
 			result.trySetMinMaxHealingReceived(value);
+			ability.addHealingDone(value);
+			ability.addHealingReceived(value);
+			ability.trySetMinMaxHealingDone(value);
+			ability.trySetMinMaxHealingReceived(value);
 			source.addHealingDone(value);
 			source.trySetMinMaxHealingDone(value);
 			target.addHealingReceived(value);
@@ -98,6 +118,7 @@ public class Analyzer {
 			// mitigation
 			MitigationType type = entry.getResult().getMitigationType();
 			result.addMitigation(type);
+			ability.addMitigation(type);
 			source.addMitigation(type);
 			sourceAbility.addMitigation(type);
 			targetAbility.addMitigation(type);
@@ -105,6 +126,7 @@ public class Analyzer {
 		} else if (entry.getResult().isCritical()) {
 			// critical hits
 			result.addCrit();
+			ability.addCrit();
 			source.addCrit();
 			sourceAbility.addCrit();
 			targetAbility.addCrit();
@@ -112,6 +134,7 @@ public class Analyzer {
 		} else {
 			// regular hits
 			result.addHit();
+			ability.addHit();
 			source.addHit();
 			sourceAbility.addHit();
 			targetAbility.addHit();
@@ -122,6 +145,7 @@ public class Analyzer {
 		if (entry.getResult().isAbsorb()) {
 			long value = entry.getResult().getAbsorbValue();
 			result.addAbsorb(value);
+			ability.addAbsorb(value);
 			source.addAbsorb(value);
 			sourceAbility.addAbsorb(value);
 			target.addTargetOfAbsorb(value);
@@ -131,10 +155,12 @@ public class Analyzer {
 		long dThreat = entry.getResult().getThreatDelta();
 		if (dThreat > 0) {
 			result.addThreatGenerated(dThreat);
+			ability.addThreatGenerated(dThreat);
 			source.addThreatGenerated(dThreat);
 			sourceAbility.addThreatGenerated(dThreat);
 		} else if (dThreat < 0) {
 			result.addThreatDumped(dThreat);
+			ability.addThreatDumped(dThreat);
 			source.addThreatDumped(dThreat);
 			sourceAbility.addThreatDumped(dThreat);
 		}

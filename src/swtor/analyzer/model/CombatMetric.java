@@ -6,6 +6,8 @@ public class CombatMetric {
 	private double perSecond;
 	private double average;
 	private double median;
+	private long min;
+	private long max;
 
 	public double getTotal() {
 		return total;
@@ -38,9 +40,31 @@ public class CombatMetric {
 	public void setMedian(double median) {
 		this.median = median;
 	}
-	
+
 	public void addToTotal(long value) {
 		total += value;
 	}
 
+	public void trySetMin(long value) {
+		min = (value < min && value > 0) ? value : min;
+	}
+
+	public void trySetMax(long value) {
+		max = (value > max) ? value : max;
+	}
+
+	public void trySetMinMax(long value) {
+		trySetMin(value);
+		trySetMax(value);
+	}
+
+	public void computeValuesOverTime(long duration) {
+		if (duration > 0)
+			perSecond = total / duration;
+	}
+
+	public String toString() {
+		return String.format("total:%s, dps:%s, avg:%s, median:%s, min:%s, max:%s", total, perSecond, average, median,
+				min, max);
+	}
 }

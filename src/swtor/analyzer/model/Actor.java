@@ -1,14 +1,30 @@
 package swtor.analyzer.model;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import swtor.parser.constant.MitigationType;
 
 public class Actor extends CombatMetricEntity {
 
 	private final String name;
 	private final long id;
 
-	private Map<String, Ability> sourceOfAbilities;
-	private Map<String, Ability> targetOfAbilities;
+	private long targetOfHitCount;
+	private long targetOfCritCount;
+	private long targetOfMitigateCount;
+	private long targetOfMissCount;
+	private long targetOfGlanceCount;
+	private long targetOfDeflectCount;
+	private long targetOfImmuneCount;
+	private long targetOfParryCount;
+	private long targetOfDodgeCount;
+
+	protected long targetOfAbsorbCount;
+	protected long targetOfAbsorbTotal;
+
+	private Map<String, Ability> sourceOfAbilities = new HashMap<>();
+	private Map<String, Ability> targetOfAbilities = new HashMap<>();
 
 	public Actor(String name, long id) {
 		super();
@@ -16,44 +32,76 @@ public class Actor extends CombatMetricEntity {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public long getTargetOfMitigateCount() {
+		return targetOfMitigateCount;
 	}
 
-	public long getId() {
-		return id;
+	public void setTargetOfMitigateCount(long targetOfMitigateCount) {
+		this.targetOfMitigateCount = targetOfMitigateCount;
 	}
 
-	public CombatMetric getDamageDone() {
-		return damageDone;
+	public long getTargetOfMissCount() {
+		return targetOfMissCount;
 	}
 
-	public void setDamageDone(CombatMetric damageDone) {
-		this.damageDone = damageDone;
+	public void setTargetOfMissCount(long targetOfMissCount) {
+		this.targetOfMissCount = targetOfMissCount;
 	}
 
-	public CombatMetric getDamageReceived() {
-		return damageReceived;
+	public long getTargetOfGlanceCount() {
+		return targetOfGlanceCount;
 	}
 
-	public void setDamageReceived(CombatMetric damageReceived) {
-		this.damageReceived = damageReceived;
+	public void setTargetOfGlanceCount(long targetOfGlanceCount) {
+		this.targetOfGlanceCount = targetOfGlanceCount;
 	}
 
-	public CombatMetric getHealingDone() {
-		return healingDone;
+	public long getTargetOfDeflectCount() {
+		return targetOfDeflectCount;
 	}
 
-	public void setHealingDone(CombatMetric healingDone) {
-		this.healingDone = healingDone;
+	public void setTargetOfDeflectCount(long targetOfDeflectCount) {
+		this.targetOfDeflectCount = targetOfDeflectCount;
 	}
 
-	public CombatMetric getHealingReceived() {
-		return healingReceived;
+	public long getTargetOfImmuneCount() {
+		return targetOfImmuneCount;
 	}
 
-	public void setHealingReceived(CombatMetric healingReceived) {
-		this.healingReceived = healingReceived;
+	public void setTargetOfImmuneCount(long targetOfImmuneCount) {
+		this.targetOfImmuneCount = targetOfImmuneCount;
+	}
+
+	public long getTargetOfParryCount() {
+		return targetOfParryCount;
+	}
+
+	public void setTargetOfParryCount(long targetOfParryCount) {
+		this.targetOfParryCount = targetOfParryCount;
+	}
+
+	public long getTargetOfDodgeCount() {
+		return targetOfDodgeCount;
+	}
+
+	public void setTargetOfDodgeCount(long targetOfDodgeCount) {
+		this.targetOfDodgeCount = targetOfDodgeCount;
+	}
+
+	public long getTargetOfAbsorbCount() {
+		return targetOfAbsorbCount;
+	}
+
+	public void setTargetOfAbsorbCount(long targetOfAbsorbCount) {
+		this.targetOfAbsorbCount = targetOfAbsorbCount;
+	}
+
+	public long getTargetOfAbsorbTotal() {
+		return targetOfAbsorbTotal;
+	}
+
+	public void setTargetOfAbsorbTotal(long targetOfabsorbTotal) {
+		this.targetOfAbsorbTotal = targetOfabsorbTotal;
 	}
 
 	public Map<String, Ability> getSourceOfAbilities() {
@@ -72,14 +120,101 @@ public class Actor extends CombatMetricEntity {
 		this.targetOfAbilities = targetOfAbilities;
 	}
 
+	public String getName() {
+		return name;
+	}
+
+	public long getId() {
+		return id;
+	}
+
 	public Ability getSourceOfAbility(Ability ability) {
 		Ability found = sourceOfAbilities.get(ability.getName());
-		return found != null ? found : ability;
+		if (found == null) {
+			sourceOfAbilities.put(ability.getName(), ability);
+			found = ability;
+		}
+		return found;
 	}
 
 	public Ability getTargetOfAbility(Ability ability) {
 		Ability found = targetOfAbilities.get(ability.getName());
-		return found != null ? found : ability;
+		if (found == null) {
+			targetOfAbilities.put(ability.getName(), ability);
+			found = ability;
+		}
+		return found;
+	}
+
+	public void addTargetOfHit() {
+		++targetOfHitCount;
+	}
+
+	public void addTargetOfCrit() {
+		addHit();
+		++targetOfCritCount;
+	}
+
+	public void addTargetOfMiss() {
+		++targetOfMissCount;
+		++targetOfMitigateCount;
+	}
+
+	public void addTargetOfGlance() {
+		++targetOfDeflectCount;
+		++targetOfMitigateCount;
+	}
+
+	public void addTargetOfImmune() {
+		++targetOfImmuneCount;
+		++targetOfMitigateCount;
+	}
+
+	public void addTargetOfParry() {
+		++targetOfParryCount;
+		++targetOfMitigateCount;
+	}
+
+	public void addTargetOfDodge() {
+		++targetOfDodgeCount;
+		++targetOfMitigateCount;
+	}
+
+	public void addTargetOfDeflect() {
+		++targetOfDeflectCount;
+		++targetOfMitigateCount;
+	}
+
+	public void addTargetOfAbsorb(long value) {
+		targetOfAbsorbTotal += value;
+		++targetOfAbsorbCount;
+	}
+
+	public void addTargetOfMitigate(MitigationType type) {
+		switch (type) {
+		case MISS:
+			addMiss();
+			break;
+		case GLANCE:
+			addGlance();
+			break;
+		case PARRY:
+			addParry();
+			break;
+		case DODGE:
+			addDodge();
+			break;
+		case IMMUNE:
+			addImmune();
+			break;
+		case DEFLECT:
+			addDeflect();
+			break;
+		}
+	}
+	
+	public String toString() {
+		return String.format("name:%s", name);
 	}
 
 }

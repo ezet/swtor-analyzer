@@ -1,6 +1,6 @@
 package swtor.analyzer.model;
 
-public class Ability extends CombatMetricEntity {
+public class Ability extends GenericMetricEntity {
 
 	private final String name;
 	private final long id;

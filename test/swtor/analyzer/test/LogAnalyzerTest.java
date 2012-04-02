@@ -29,6 +29,7 @@ public class LogAnalyzerTest {
 				LogAnalyzer a = new LogAnalyzer(parser.getLog());
 				a.process();
 				Result res = a.getLastResult(); 
+				Logger.log(res);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

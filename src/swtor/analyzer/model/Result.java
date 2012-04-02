@@ -1,13 +1,16 @@
 package swtor.analyzer.model;
 
+import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Result extends CombatMetricEntity {
-	
-	public enum ResultType { IN_COMBAT, OUT_OF_COMBAT; }
-	
+public class Result extends GenericMetricEntity {
+
+	public enum ResultType {
+		IN_COMBAT, OUT_OF_COMBAT;
+	}
+
 	private String id;
 	private ResultType type = ResultType.OUT_OF_COMBAT;
 	private String name = "Result: ";
@@ -15,16 +18,14 @@ public class Result extends CombatMetricEntity {
 	private Calendar start;
 	private Calendar end;
 	private long duration;
-	
+
 	private long logEntryCount;
 	private long lineStart;
 	private long lineEnd;
-	
-	
-	private Map<String, Actor> actors = new HashMap<>();
-	private Map<String, Ability> abilities = new HashMap<>();
-	
-	
+
+	private final Map<String, Actor> actors = new HashMap<>();
+	private final Map<String, Ability> abilities = new HashMap<>();
+
 	public Result(long lineStart) {
 		this.lineStart = lineStart;
 	}
@@ -36,7 +37,7 @@ public class Result extends CombatMetricEntity {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
 	public ResultType getType() {
 		return type;
 	}
@@ -60,7 +61,7 @@ public class Result extends CombatMetricEntity {
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
-	
+
 	public Calendar getStart() {
 		return start;
 	}
@@ -84,7 +85,7 @@ public class Result extends CombatMetricEntity {
 	public void setDuration(long duration) {
 		this.duration = duration;
 	}
-	
+
 	public long getLogEntryCount() {
 		return logEntryCount;
 	}
@@ -113,18 +114,10 @@ public class Result extends CombatMetricEntity {
 		return actors;
 	}
 
-	public void setActors(Map<String, Actor> actors) {
-		this.actors = actors;
-	}
-
 	public Map<String, Ability> getAbilities() {
 		return abilities;
 	}
 
-	public void setAbilities(Map<String, Ability> abilities) {
-		this.abilities = abilities;
-	}
-	
 	public void increaseLogEntryCount() {
 		++logEntryCount;
 	}
@@ -137,7 +130,7 @@ public class Result extends CombatMetricEntity {
 		}
 		return found;
 	}
-	
+
 	public Ability getAbility(Ability ability) {
 		Ability found = abilities.get(ability.getName());
 		if (found == null) {
@@ -146,8 +139,12 @@ public class Result extends CombatMetricEntity {
 		}
 		return found;
 	}
-	
+
 	public String toString() {
-		return name + super.toString();
+		return String
+				.format("id:%s, type:%s, name:%s, owner:%s, start:%s, end:%s, duration:%s, lineStart:%s, lineEnd:%s, entry#:%s",
+						id, type, name, owner, DateFormat.getTimeInstance().format(start.getTime()), DateFormat
+								.getTimeInstance().format(end.getTime()), duration / 1000, lineStart, lineEnd,
+						logEntryCount);
 	}
 }

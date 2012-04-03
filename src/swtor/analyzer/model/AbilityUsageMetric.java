@@ -12,7 +12,7 @@ public class AbilityUsageMetric {
 	private long mitigateCount;
 	private long absorbCount;
 	private long absorbTotal;
-	private final Map<MitigationType, Long> mitigationTypes = new HashMap<>();
+	private final Map<MitigationType, Long> mitigationTypes = new HashMap<MitigationType, Long>();
 
 	public long getHitCount() {
 		return hitCount;

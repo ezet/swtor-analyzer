@@ -9,16 +9,57 @@ public class Actor extends GenericMetricEntity {
 
 	private final String name;
 	private final long id;
+	private final boolean player;
+	private final boolean companion;
+	private boolean hostile;
 
 	private final AbilityUsageMetric targetOfMetrics = new AbilityUsageMetric();
 
-	private final Map<String, Ability> sourceOfAbilities = new HashMap<>();
-	private final Map<String, Ability> targetOfAbilities = new HashMap<>();
+	private final Map<String, Ability> sourceOfAbilities = new HashMap<String, Ability>();
+	private final Map<String, Ability> targetOfAbilities = new HashMap<String, Ability>();
 
-	public Actor(String name, long id) {
+	public Actor(String name, long id, boolean player, boolean companion) {
 		super();
 		this.name = name;
 		this.id = id;
+		this.player = player;
+		this.companion = companion;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public boolean isPlayer() {
+		return player;
+	}
+
+	public boolean isCompanion() {
+		return companion;
+	}
+	
+	public boolean isHostile() {
+		return hostile;
+	}
+
+	public void setHostile(boolean hostile) {
+		this.hostile = hostile;
+	}
+
+	public Map<String, Ability> getSourceOfAbilities() {
+		return sourceOfAbilities;
+	}
+
+	public Map<String, Ability> getTargetOfAbilities() {
+		return targetOfAbilities;
+	}
+
+	public AbilityUsageMetric getTargetOfMetrics() {
+		return targetOfMetrics;
 	}
 
 	public long getTargetOfHitCount() {
@@ -39,22 +80,6 @@ public class Actor extends GenericMetricEntity {
 
 	public long getTargetOfAbsorbTotal() {
 		return targetOfMetrics.getAbsorbTotal();
-	}
-
-	public Map<String, Ability> getSourceOfAbilities() {
-		return sourceOfAbilities;
-	}
-
-	public Map<String, Ability> getTargetOfAbilities() {
-		return targetOfAbilities;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public long getId() {
-		return id;
 	}
 
 	public Ability getSourceOfAbility(Ability ability) {

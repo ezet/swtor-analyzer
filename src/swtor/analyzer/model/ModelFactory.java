@@ -9,7 +9,7 @@ public class ModelFactory {
 	}
 
 	public static Actor getActor(swtor.parser.model.Actor actor) {
-		Actor n = new Actor(actor.getName(), actor.getGameId());
+		Actor n = new Actor(actor.getName(), actor.getGameId(), actor.isPlayer(), actor.isCompanion());
 		return n;
 	}
 

@@ -8,34 +8,39 @@ import java.util.Map;
 public class Result extends GenericMetricEntity {
 
 	public enum ResultType {
-		IN_COMBAT, OUT_OF_COMBAT;
+		COMBAT, NON_COMBAT;
 	}
 
-	private String id;
-	private ResultType type = ResultType.OUT_OF_COMBAT;
-	private String name = "Result: ";
-	private String owner;
+	private long id;
+	private ResultType type = ResultType.NON_COMBAT;
+	private String name = "";
+	private String owner = "";
 	private Calendar start;
 	private Calendar end;
 	private long duration;
 
-	private long logEntryCount;
+	private long lineCount;
 	private long lineStart;
 	private long lineEnd;
 
-	private final Map<String, Actor> actors = new HashMap<>();
-	private final Map<String, Ability> abilities = new HashMap<>();
+	private final Map<String, Actor> actors = new HashMap<String, Actor>();
+	private final Map<String, Ability> abilities = new HashMap<String, Ability>();
 
-	public Result(long lineStart) {
+	public Result(long id, long lineStart) {
+		this.id = id;
 		this.lineStart = lineStart;
 	}
 
-	public String getId() {
+	public long getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(long id) {
 		this.id = id;
+	}
+
+	public void setLineStart(long lineStart) {
+		this.lineStart = lineStart;
 	}
 
 	public ResultType getType() {
@@ -87,11 +92,11 @@ public class Result extends GenericMetricEntity {
 	}
 
 	public long getLogEntryCount() {
-		return logEntryCount;
+		return lineCount;
 	}
 
 	public void setLogEntryCount(long logEntryCount) {
-		this.logEntryCount = logEntryCount;
+		this.lineCount = logEntryCount;
 	}
 
 	public long getLineStart() {
@@ -118,8 +123,8 @@ public class Result extends GenericMetricEntity {
 		return abilities;
 	}
 
-	public void increaseLogEntryCount() {
-		++logEntryCount;
+	public void increaseLineCount() {
+		++lineCount;
 	}
 
 	public Actor getActor(Actor actor) {
@@ -142,9 +147,9 @@ public class Result extends GenericMetricEntity {
 
 	public String toString() {
 		return String
-				.format("id:%s, type:%s, name:%s, owner:%s, start:%s, end:%s, duration:%s, lineStart:%s, lineEnd:%s, entry#:%s",
+				.format("id:%s, type:%s, name:%s, owner:%s, start:%s, end:%s, duration:%ss, lineStart:%s, lineEnd:%s, lines:%s",
 						id, type, name, owner, DateFormat.getTimeInstance().format(start.getTime()), DateFormat
 								.getTimeInstance().format(end.getTime()), duration / 1000, lineStart, lineEnd,
-						logEntryCount);
+						lineCount);
 	}
 }

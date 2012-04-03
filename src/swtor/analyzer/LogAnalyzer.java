@@ -10,7 +10,7 @@ public class LogAnalyzer {
 
 	private List<LogEntry> log;
 	private Analyzer analyzer = new Analyzer();
-	private List<Result> results = new ArrayList<>();
+	private List<Result> results = new ArrayList<Result>();
 
 	public LogAnalyzer(List<LogEntry> log) {
 		this.log = log;
@@ -20,14 +20,18 @@ public class LogAnalyzer {
 		if (!results.isEmpty()) {
 			return results.get(results.size() - 1);
 		} else {
-			return new Result(0);
+			return new Result(0, 0);
 		}
+	}
+	
+	public List<Result> getCombatResults() {
+		return results;
 	}
 
 	public void process() {
 		if (!log.isEmpty()) {
 			analyzer.process(log);
-			results = analyzer.getResults();
+			results = analyzer.getCombatResults();
 		} else {
 			System.out.println("log empty");
 		}

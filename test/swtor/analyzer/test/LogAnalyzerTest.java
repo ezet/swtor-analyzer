@@ -1,12 +1,7 @@
 package swtor.analyzer.test;
 
-import static org.junit.Assert.*;
-
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.junit.Test;
 
@@ -19,22 +14,21 @@ public class LogAnalyzerTest {
 
 	@Test
 	public void test() {
-		Path path;
-		path = Paths.get("D:/Dev/Projects/SwtorParser/SampleLogs/");
-		try (DirectoryStream<Path> dir = Files.newDirectoryStream(path);) {
-			for (Path p : dir) {
-				Logger.log(p.toString());
-				LogParser parser = new LogParser(p);
-				parser.parse();
-				LogAnalyzer a = new LogAnalyzer(parser.getLog());
-				a.process();
-				Result res = a.getLastResult(); 
-				Logger.log(res);
-			}
+		File file = new File("D:/Dev/Projects/SwtorParser/SampleLogs/combat_2012-03-17_10_39_06_966767.txt");
+		LogParser parser = new LogParser(file);
+		try {
+			parser.parse();
 		} catch (IOException e) {
 			e.printStackTrace();
-			fail("IO error");
 		}
+		LogAnalyzer a = new LogAnalyzer(parser.getLog());
+		a.process();
+		for (Result r : a.getCombatResults()) {
+			Logger.log(r);
+			Logger.log(r.getHitCount());
+			Logger.log(r.getDamageDone());
+			Logger.log(r.getThreatGenerated());
+		}
+		
 	}
-
 }

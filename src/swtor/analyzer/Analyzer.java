@@ -11,19 +11,27 @@ import swtor.analyzer.model.Result.ResultType;
 import swtor.parser.constant.EntryType;
 import swtor.parser.constant.MitigationType;
 import swtor.parser.model.LogEntry;
+import swtor.parser.utility.Logger;
 
 public class Analyzer {
 
-	private List<Result> results;
+	private List<Result> combatResults;
+	private List<Result> nonCombatResults;
 	private Result result;
 
-	public List<Result> getResults() {
-		return results;
+	public List<Result> getCombatResults() {
+		return combatResults;
+	}
+
+	public List<Result> getNonCombatresults() {
+		return nonCombatResults;
 	}
 
 	public void process(List<LogEntry> log) {
-		results = new ArrayList<>();
-		result = new Result(0);
+		int id = 0;
+		combatResults = new ArrayList<Result>();
+		nonCombatResults = new ArrayList<Result>();
+		result = new Result(++id, 0);
 		LogEntry previous = null;
 		for (LogEntry entry : log) {
 			if (result.getStart() == null) {
@@ -35,16 +43,15 @@ public class Analyzer {
 					result.setEnd(previous.getTime());
 					result.setLineEnd(previous.getLineNumber());
 					finalizeResult();
-					result = new Result(entry.getLineNumber());
+					result = new Result(++id, entry.getLineNumber());
 				}
-				result.setType(ResultType.IN_COMBAT);
+				result.setType(ResultType.COMBAT);
 			} else if (entry.getType() == EntryType.EXIT_COMBAT && result.getLogEntryCount() > 0) {
-				result.setType(ResultType.IN_COMBAT);
+				result.setType(ResultType.COMBAT);
 				result.setEnd(entry.getTime());
 				result.setLineEnd(entry.getLineNumber());
 				finalizeResult();
-				results.add(result);
-				result = new Result(entry.getLineNumber());
+				result = new Result(++id, entry.getLineNumber());
 			} else {
 				processEntry(entry);
 			}
@@ -53,17 +60,38 @@ public class Analyzer {
 		result.setEnd(previous.getTime());
 		result.setLineEnd(previous.getLineNumber());
 		finalizeResult();
-		results.add(result);
 	}
 
 	private void finalizeResult() {
 		result.setDuration(Math.abs(result.getStart().getTimeInMillis() - result.getEnd().getTimeInMillis()));
 		result.computeValuesOverTime(result.getDuration());
-		results.add(result);
+		if (result.getType() == ResultType.COMBAT) {
+			combatResults.add(result);
+		} else {
+			nonCombatResults.add(result);
+		}
+	}
+
+	private void setHostility(Actor actor) {
+		if (!actor.isHostile() && !actor.isPlayer() && !actor.isCompanion()) {
+//			Logger.log("setting hostile: " + actor.getName());
+			actor.setHostile(true);
+			// Set the name of the result to the first hostile we encounter
+			if (result.getName() == null || result.getName().isEmpty()) {
+				result.setName(actor.getName());
+			}
+		}
+	}
+
+	private void processDamage() {
+
 	}
 
 	private void processEntry(LogEntry entry) {
-		result.increaseLogEntryCount();
+		result.increaseLineCount();
+
+		// get a new or existing model from the result, and add it to the result
+		// if new
 		Actor source = result.getActor(ModelFactory.getActor(entry.getSource()));
 		Actor target = result.getActor(ModelFactory.getActor(entry.getTarget()));
 		Ability sourceAbility = source.getSourceOfAbility(ModelFactory.getAbility(entry.getAbility()));
@@ -71,12 +99,16 @@ public class Analyzer {
 		Ability ability = result.getAbility(ModelFactory.getAbility(entry.getAbility()));
 
 		// set the owner of the result
-		if (result.getOwner() == null && source == target) {
+		if ((result.getOwner() == null || result.getOwner().isEmpty()) && source.getName().equals(target.getName())
+				&& !source.isCompanion()) {
 			result.setOwner(source.getName());
 		}
 
 		// set damage and healing done/received
 		if (entry.getType() == EntryType.DAMAGE) {
+			processDamage();
+			setHostility(source);
+			setHostility(target);
 			long value = entry.getResult().getValue();
 			result.addDamageDone(value);
 			result.addDamageReceived(value);

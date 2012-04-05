@@ -8,7 +8,8 @@ import org.junit.Test;
 import swtor.analyzer.LogAnalyzer;
 import swtor.analyzer.model.Result;
 import swtor.parser.LogParser;
-import swtor.parser.utility.Logger;
+import swtor.parser.exception.LogParserException;
+import swtor.parser.util.Logger;
 
 public class LogAnalyzerTest {
 
@@ -20,10 +21,13 @@ public class LogAnalyzerTest {
 			parser.parse();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (LogParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		LogAnalyzer a = new LogAnalyzer(parser.getLog());
+		LogAnalyzer a = new LogAnalyzer(parser.getCombatLog());
 		a.process();
-		for (Result r : a.getCombatResults()) {
+		for (Result r : a.getResult().getCombatResults()) {
 			Logger.log(r);
 			Logger.log(r.getHitCount());
 			Logger.log(r.getDamageDone());

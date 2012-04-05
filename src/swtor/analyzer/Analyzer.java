@@ -11,7 +11,7 @@ import swtor.analyzer.model.Result.ResultType;
 import swtor.parser.constant.EntryType;
 import swtor.parser.constant.MitigationType;
 import swtor.parser.model.LogEntry;
-import swtor.parser.utility.Logger;
+import swtor.parser.util.Logger;
 
 public class Analyzer {
 

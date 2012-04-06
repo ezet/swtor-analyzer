@@ -19,7 +19,6 @@ public class Result extends GenericMetricEntity {
 	private Calendar end;
 	private long duration;
 
-	private long lineCount;
 	private long lineStart;
 	private long lineEnd;
 
@@ -91,12 +90,8 @@ public class Result extends GenericMetricEntity {
 		this.duration = duration;
 	}
 
-	public long getLogEntryCount() {
-		return lineCount;
-	}
-
-	public void setLogEntryCount(long logEntryCount) {
-		this.lineCount = logEntryCount;
+	public long getLineCount() {
+		return lineEnd - lineStart;
 	}
 
 	public long getLineStart() {
@@ -123,11 +118,15 @@ public class Result extends GenericMetricEntity {
 		return abilities;
 	}
 
-	public void increaseLineCount() {
-		++lineCount;
+	public Actor getActor(String name) {
+		return actors.get(name);
+	}
+	
+	public Ability getAbility(String name) {
+		return abilities.get(name);
 	}
 
-	public Actor getActor(Actor actor) {
+	public Actor addActor(Actor actor) {
 		Actor found = actors.get(actor.getName());
 		if (found == null) {
 			actors.put(actor.getName(), actor);
@@ -136,7 +135,7 @@ public class Result extends GenericMetricEntity {
 		return found;
 	}
 
-	public Ability getAbility(Ability ability) {
+	public Ability addAbility(Ability ability) {
 		Ability found = abilities.get(ability.getName());
 		if (found == null) {
 			abilities.put(ability.getName(), ability);
@@ -150,6 +149,6 @@ public class Result extends GenericMetricEntity {
 				.format("id:%s, type:%s, name:%s, owner:%s, start:%s, end:%s, duration:%ss, lineStart:%s, lineEnd:%s, lines:%s",
 						id, type, name, owner, DateFormat.getTimeInstance().format(start.getTime()), DateFormat
 								.getTimeInstance().format(end.getTime()), duration / 1000, lineStart, lineEnd,
-						lineCount);
+						getLineCount());
 	}
 }

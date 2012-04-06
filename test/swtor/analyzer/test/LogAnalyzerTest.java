@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.junit.Test;
 
 import swtor.analyzer.LogAnalyzer;
+import swtor.analyzer.exception.LogAnalyzerException;
 import swtor.analyzer.model.Result;
 import swtor.parser.LogParser;
 import swtor.parser.exception.LogParserException;
@@ -25,8 +26,13 @@ public class LogAnalyzerTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		LogAnalyzer a = new LogAnalyzer(parser.getCombatLog());
-		a.process();
+		LogAnalyzer a = new LogAnalyzer(file);
+		try {
+			a.process();
+		} catch (LogAnalyzerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		for (Result r : a.getResult().getCombatResults()) {
 			Logger.log(r);
 			Logger.log(r.getHitCount());

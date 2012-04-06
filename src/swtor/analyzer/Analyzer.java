@@ -10,13 +10,16 @@ import swtor.analyzer.model.Result;
 import swtor.analyzer.model.Result.ResultType;
 import swtor.parser.constant.EntryType;
 import swtor.parser.constant.MitigationType;
+import swtor.parser.filter.OutputFilter;
 import swtor.parser.model.LogEntry;
 
-public class Analyzer {
+public class Analyzer implements OutputFilter {
 
-	private List<Result> combatResults = new ArrayList<Result>();
-	private List<Result> nonCombatResults = new ArrayList<Result>();
+	private List<Result> combatResults;
+	private List<Result> nonCombatResults;
 	private Result result;
+	private LogEntry previous;
+	private int id;
 
 	public List<Result> getCombatResults() {
 		return combatResults;
@@ -26,37 +29,57 @@ public class Analyzer {
 		return nonCombatResults;
 	}
 
-	public void process(List<LogEntry> log) {
-		int id = 0;
-		result = new Result(++id, 0);
-		LogEntry previous = null;
-		for (LogEntry entry : log) {
-			if (result.getStart() == null) {
-				result.setStart(entry.getTime());
-			}
+	private void reset() {
+		combatResults = new ArrayList<Result>();
+		nonCombatResults = new ArrayList<Result>();
+		result = new Result(0, 0);
+		previous = null;
+		id = 0;
+	}
 
-			if (entry.getType() == EntryType.ENTER_COMBAT) {
-				if (result.getLogEntryCount() > 0) {
-					result.setEnd(previous.getTime());
-					result.setLineEnd(previous.getLineNumber());
-					finalizeResult();
-					result = new Result(++id, entry.getLineNumber());
-				}
-				result.setType(ResultType.COMBAT);
-			} else if (entry.getType() == EntryType.EXIT_COMBAT && result.getLogEntryCount() > 0) {
-				result.setType(ResultType.COMBAT);
-				result.setEnd(entry.getTime());
-				result.setLineEnd(entry.getLineNumber());
-				finalizeResult();
-				result = new Result(++id, entry.getLineNumber());
-			} else {
-				processEntry(entry);
-			}
-			previous = entry;
-		}
+	@Override
+	public void onLogStart() {
+		reset();
+	}
+	
+	@Override
+	public void onLogEnd() {
 		result.setEnd(previous.getTime());
 		result.setLineEnd(previous.getLineNumber());
 		finalizeResult();
+	}
+	
+	public void process(List<LogEntry> log) {
+		onLogStart();
+		for (LogEntry entry : log) {
+			process(entry);
+		}
+		onLogEnd();
+	}
+
+	@Override
+	public void process(LogEntry entry) {
+		if (result.getStart() == null) {
+			result.setStart(entry.getTime());
+		}
+		if (entry.getType() == EntryType.ENTER_COMBAT) {
+			if (result.getLineCount() > 0) {
+				result.setEnd(previous.getTime());
+				result.setLineEnd(previous.getLineNumber());
+				finalizeResult();
+				result = new Result(++id, entry.getLineNumber());
+			}
+			result.setType(ResultType.COMBAT);
+		} else if (entry.getType() == EntryType.EXIT_COMBAT && result.getLineCount() > 0) {
+			result.setType(ResultType.COMBAT);
+			result.setEnd(entry.getTime());
+			result.setLineEnd(entry.getLineNumber());
+			finalizeResult();
+			result = new Result(++id, entry.getLineNumber());
+		} else {
+			processEntry(entry);
+		}
+		previous = entry;
 	}
 
 	private void finalizeResult() {
@@ -71,7 +94,7 @@ public class Analyzer {
 
 	private void setHostility(Actor actor) {
 		if (!actor.isHostile() && !actor.isPlayer() && !actor.isCompanion()) {
-//			Logger.log("setting hostile: " + actor.getName());
+			// Logger.log("setting hostile: " + actor.getName());
 			actor.setHostile(true);
 			// Set the name of the result to the first hostile we encounter
 			if (result.getName() == null || result.getName().isEmpty()) {
@@ -85,15 +108,13 @@ public class Analyzer {
 	}
 
 	private void processEntry(LogEntry entry) {
-		result.increaseLineCount();
-
 		// get a new or existing model from the result, and add it to the result
 		// if new
-		Actor source = result.getActor(ModelFactory.getSource(entry));
-		Actor target = result.getActor(ModelFactory.getTarget(entry));
+		Actor source = result.addActor(ModelFactory.getSource(entry));
+		Actor target = result.addActor(ModelFactory.getTarget(entry));
 		Ability sourceAbility = source.getSourceOfAbility(ModelFactory.getAbility(entry));
 		Ability targetAbility = source.getTargetOfAbility(ModelFactory.getAbility(entry));
-		Ability ability = result.getAbility(ModelFactory.getAbility(entry));
+		Ability ability = result.addAbility(ModelFactory.getAbility(entry));
 
 		// set the owner of the result
 		if ((result.getOwner() == null || result.getOwner().isEmpty()) && source.getName().equals(target.getName())

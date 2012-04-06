@@ -11,12 +11,11 @@ import swtor.analyzer.model.Result.ResultType;
 import swtor.parser.constant.EntryType;
 import swtor.parser.constant.MitigationType;
 import swtor.parser.model.LogEntry;
-import swtor.parser.util.Logger;
 
 public class Analyzer {
 
-	private List<Result> combatResults;
-	private List<Result> nonCombatResults;
+	private List<Result> combatResults = new ArrayList<Result>();
+	private List<Result> nonCombatResults = new ArrayList<Result>();
 	private Result result;
 
 	public List<Result> getCombatResults() {
@@ -29,8 +28,6 @@ public class Analyzer {
 
 	public void process(List<LogEntry> log) {
 		int id = 0;
-		combatResults = new ArrayList<Result>();
-		nonCombatResults = new ArrayList<Result>();
 		result = new Result(++id, 0);
 		LogEntry previous = null;
 		for (LogEntry entry : log) {
@@ -92,11 +89,11 @@ public class Analyzer {
 
 		// get a new or existing model from the result, and add it to the result
 		// if new
-		Actor source = result.getActor(ModelFactory.getActor(entry.getSource()));
-		Actor target = result.getActor(ModelFactory.getActor(entry.getTarget()));
-		Ability sourceAbility = source.getSourceOfAbility(ModelFactory.getAbility(entry.getAbility()));
-		Ability targetAbility = source.getTargetOfAbility(ModelFactory.getAbility(entry.getAbility()));
-		Ability ability = result.getAbility(ModelFactory.getAbility(entry.getAbility()));
+		Actor source = result.getActor(ModelFactory.getSource(entry));
+		Actor target = result.getActor(ModelFactory.getTarget(entry));
+		Ability sourceAbility = source.getSourceOfAbility(ModelFactory.getAbility(entry));
+		Ability targetAbility = source.getTargetOfAbility(ModelFactory.getAbility(entry));
+		Ability ability = result.getAbility(ModelFactory.getAbility(entry));
 
 		// set the owner of the result
 		if ((result.getOwner() == null || result.getOwner().isEmpty()) && source.getName().equals(target.getName())
@@ -109,7 +106,7 @@ public class Analyzer {
 			processDamage();
 			setHostility(source);
 			setHostility(target);
-			long value = entry.getResult().getValue();
+			long value = entry.getValue();
 			result.addDamageDone(value);
 			result.addDamageReceived(value);
 			result.trySetMinMaxDamageDone(value);
@@ -127,7 +124,7 @@ public class Analyzer {
 			targetAbility.addDamageReceived(value);
 			targetAbility.trySetMinMaxDamageReceived(value);
 		} else if (entry.getType() == EntryType.HEAL) {
-			long value = entry.getResult().getValue();
+			long value = entry.getValue();
 			result.addHealingDone(value);
 			result.addHealingReceived(value);
 			result.trySetMinMaxHealingDone(value);
@@ -146,16 +143,16 @@ public class Analyzer {
 			targetAbility.trySetMinMaxHealingReceived(value);
 		}
 
-		if (entry.getResult().isMitigate()) {
+		if (entry.isMitigate()) {
 			// mitigation
-			MitigationType type = entry.getResult().getMitigationType();
+			MitigationType type = entry.getMitigationType();
 			result.addMitigation(type);
 			ability.addMitigation(type);
 			source.addMitigation(type);
 			sourceAbility.addMitigation(type);
 			targetAbility.addMitigation(type);
 			target.addTargetOfMitigate(type);
-		} else if (entry.getResult().isCritical()) {
+		} else if (entry.isCritical()) {
 			// critical hits
 			result.addCrit();
 			ability.addCrit();
@@ -174,8 +171,8 @@ public class Analyzer {
 		}
 
 		// absorbs
-		if (entry.getResult().isAbsorb()) {
-			long value = entry.getResult().getAbsorbValue();
+		if (entry.isAbsorb()) {
+			long value = entry.getAbsorbValue();
 			result.addAbsorb(value);
 			ability.addAbsorb(value);
 			source.addAbsorb(value);
@@ -184,7 +181,7 @@ public class Analyzer {
 		}
 
 		// threat
-		long dThreat = entry.getResult().getThreatDelta();
+		long dThreat = entry.getThreatDelta();
 		if (dThreat > 0) {
 			result.addThreatGenerated(dThreat);
 			ability.addThreatGenerated(dThreat);

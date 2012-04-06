@@ -13,7 +13,7 @@ public class LogAnalyzer {
 	private Analyzer analyzer = new Analyzer();
 	private CombatLog log;
 	private LogResult result;
-
+	
 	public LogAnalyzer(List<LogEntry> entries) {
 		this.log = new CombatLog(entries, "unnamed file");
 	}
